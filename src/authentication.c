@@ -548,13 +548,22 @@ static int comp_groups_size(void *rec, const char *key, const char *value)
 typedef struct {
     char *groups;
     char *p;
+    unsigned int sspi_omitdomain;
 } groups_collect_t;
 
 // collect each group name. does NOT append trailing '\0'
 static int comp_groups_str(void *rec, const char *key, const char *value)
 {
     groups_collect_t *gct = (groups_collect_t *) rec;
-    for(const char *s = value; *s != '\0'; s++)
+    const char *s = value;
+
+    if (gct->sspi_omitdomain) {
+        const char *u = strchr(value, '\\');
+        if (u)
+            s = u+1;
+    }
+
+    for(; *s != '\0'; s++)
         *(gct->p++) = s;
     *(gct->p++) = '|';
 }
@@ -562,11 +571,13 @@ static int comp_groups_str(void *rec, const char *key, const char *value)
 int provide_auth_headers(request_rec *r)
 {
     sspi_connection_rec* scr;
+    sspi_config_rec* crec;
     apr_table_t *e;
 
     if (apr_pool_userdata_get(&scr, sspiModuleInfo.userDataKeyString, r->connection->pool)) {
         return OK; // should be some error handling
     }
+    crec = get_sspi_config_rec(r);
 
     /* use a temporary apr_table_t which we'll overlap onto
      * r->subprocess_env later
@@ -592,6 +603,7 @@ int provide_auth_headers(request_rec *r)
         groups_collect_t gct;
         gct.groups = apr_pcalloc(r->pool, groups_str_size);
         gct.p = gct.groups;
+        gct.sspi_omitdomain = crec->sspi_omitdomain;
 
         // compute groups string
         apr_table_do(comp_groups_str, &gct, scr->groups);
