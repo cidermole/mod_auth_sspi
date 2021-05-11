@@ -1,50 +1,55 @@
-APACHEDIR=..\httpd-2.0.58
-MSVCDIR=\program files\microsoft visual studio\vc98
-PLATSDKDIR=\program files\microsoft sdk
-MSVCDIR=c:\programme\microsoft visual studio\vc98
-PLATSDKDIR=c:\programme\microsoft sdk
+# Set APACHEDIR env value to your APACHE HTTPD 2.4 compiled root
+# Set PLATSDKDIR env value to your Windows SDK root
+# Set MSVCDIR to your Visual Studio\VC subfolder
+
+LIBAPR=libapr-1.lib
+LIBAPRUTIL=libaprutil-1.lib
+
+AP_INCLUDES=\
+	/I "$(APACHEDIR)\include" /I "$(APACHEDIR)\srclib\apr\include"\
+	/I "$(APACHEDIR)\srclib\apr-util\include" /I "$(APACHEDIR)\os\win32"
+	
+AP_LIBPATH=\
+	/LIBPATH:"$(APACHEDIR)\Release"\
+	/LIBPATH:"$(APACHEDIR)\srclib\apr\Release"\
+	/LIBPATH:"$(APACHEDIR)\srclib\apr-util\Release"
 
 SRCDIR=src
-OBJDIR=obj
 BINDIR=bin
 
 !ifndef DEBUG
 DEBUG=0
 !endif
 
-CC=cl /nologo
-CFLAGS=/G6 /W3 /WX
-INCLUDES=/I include\
-	 /I "$(APACHEDIR)\include" /I "$(APACHEDIR)\srclib\apr\include"\
-	 /I "$(APACHEDIR)\srclib\apr-util\include" /I "$(APACHEDIR)\os\win32"\
-	 /I "$(PLATSDKDIR)\include" /I "$(MSVCDIR)\include"
+CC=cl
+CFLAGS=/nologo /W3 /WX
+RCFLAGS=/nologo
+LD=link
+LDFLAGS=/nologo
 DEFINES=/D WIN32
 
-LD=link /nologo
-LDFLAGS=
-LIBPATH=/LIBPATH:"$(PLATSDKDIR)\lib"\
-	/LIBPATH:"$(MSVCDIR)\lib"
-LIBRARIES=$(APACHEDIR)\Release\libhttpd.lib\
-	  $(APACHEDIR)\srclib\apr\Release\libapr.lib\
-	  $(APACHEDIR)\srclib\apr-util\Release\libaprutil.lib\
-	  kernel32.lib advapi32.lib ole32.lib
+INCLUDES=/I include $(AP_INCLUDES) /I "$(PLATSDKDIR)\include" /I "$(MSVCDIR)\include"
+LIBPATH=$(AP_LIBPATH) /LIBPATH:"$(PLATSDKDIR)\lib" /LIBPATH:"$(MSVCDIR)\lib"
+LIBRARIES=libhttpd.lib $(LIBAPR) $(LIBAPRUTIL) kernel32.lib advapi32.lib ole32.lib
 
 !if ($(DEBUG) != 0)
-CFLAGS=$(CFLAGS) /MDd /Od /Z7
-LDFLAGS=$(LDFLAGS) /debug /pdb:none
+OBJDIR=Debug
+CFLAGS=$(CFLAGS) /LDd /MTd /Od /Z7
+LDFLAGS=$(LDFLAGS) /debug
 !else
-CFLAGS=$(CFLAGS) /MD /Ot /Og /Oi /Oy /Ob2 /GF /Gy
+OBJDIR=Release
+CFLAGS=$(CFLAGS) /LD /MT /Ot /Ox /Oi /Oy /Ob2 /GF /Gy
 LDFLAGS=$(LDFLAGS) /release /opt:ref /opt:icf,16
 !endif
 
 DLL_BASE_ADDRESS=0x6ED00000
 
-OBJECTS=$(OBJDIR)\mod_auth_sspi.obj $(OBJDIR)\authentication.obj\
-	$(OBJDIR)\accesscheck.obj $(OBJDIR)\interface.obj\
-	$(OBJDIR)\mod_auth_sspi.res
+OBJECTS=$(OBJDIR)\mod_authnz_sspi.obj $(OBJDIR)\mod_authnz_sspi_authentication.obj\
+	$(OBJDIR)\mod_authnz_sspi_authorization.obj $(OBJDIR)\mod_authnz_sspi_interface.obj\
+	$(OBJDIR)\mod_authnz_sspi.res
 
-OUTFILE=$(BINDIR)\mod_auth_sspi.so
-MAPFILE=$(BINDIR)\mod_auth_sspi.map
+OUTFILE=$(BINDIR)\mod_authnz_sspi.so
+MAPFILE=$(BINDIR)\mod_authnz_sspi.map
 
 SSPIPKGS=$(BINDIR)\sspipkgs.exe
 
@@ -55,7 +60,7 @@ dist: clean all
 all: $(OUTFILE) $(SSPIPKGS)
 
 $(OUTFILE): dirs $(OBJECTS)
-	$(LD) $(LDFLAGS) /DLL /BASE:$(DLL_BASE_ADDRESS) $(LIBPATH) $(OBJECTS) $(LIBRARIES) /OUT:$@ /MAP:$(MAPFILE)
+	$(LD) $(LDFLAGS) /noassembly /DLL /BASE:$(DLL_BASE_ADDRESS) $(LIBPATH) $(OBJECTS) $(LIBRARIES) /OUT:$@ /MAP:$(MAPFILE)
 
 $(SSPIPKGS): dirs $(OBJDIR)\sspipkgs.obj
 	$(LD) $(LDFLAGS) $(LIBPATH) $(LIBRARIES) $(OBJDIR)\sspipkgs.obj /OUT:$@

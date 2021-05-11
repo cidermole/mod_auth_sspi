@@ -1,6 +1,6 @@
 //Microsoft Developer Studio generated resource script.
 //
-#include "mod_auth_sspi_ver.h"
+#include "mod_authnz_sspi_ver.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -30,8 +30,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_AUS
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION MOD_AUTH_SSPI_VERSION_MAJOR,MOD_AUTH_SSPI_VERSION_MID,MOD_AUTH_SSPI_VERSION_MINOR,0
- PRODUCTVERSION MOD_AUTH_SSPI_VERSION_MAJOR,MOD_AUTH_SSPI_VERSION_MID,MOD_AUTH_SSPI_VERSION_MINOR,0
+ FILEVERSION MOD_AUTHNZ_SSPI_VERSION_MAJOR,MOD_AUTHNZ_SSPI_VERSION_MID,MOD_AUTHNZ_SSPI_VERSION_MINOR,0
+ PRODUCTVERSION MOD_AUTHNZ_SSPI_VERSION_MAJOR,MOD_AUTHNZ_SSPI_VERSION_MID,MOD_AUTHNZ_SSPI_VERSION_MINOR,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -47,12 +47,12 @@ BEGIN
         BLOCK "0c0904b0"
         BEGIN
             VALUE "Comments", "Visit http://mod-auth-sspi.sf.net/ for the latest version.\0"
-            VALUE "FileDescription", "SSPI security package tool for Apache 2.x\0"
-            VALUE "FileVersion", MOD_AUTH_SSPI_VERSION_STR "\0"
-            VALUE "InternalName", "sspipkgs\0"
-            VALUE "LegalCopyright", "Copyright © 1999-2006 Tim Costello\0"
-            VALUE "OriginalFilename", "sspipkgs.exe\0"
-            VALUE "ProductName", "sspipkgs\0"
+            VALUE "FileDescription", "SSPI authentication/authorization provider for Apache 2.4.x\0"
+            VALUE "FileVersion", MOD_AUTHNZ_SSPI_VERSION_STR "\0"
+            VALUE "InternalName", "mod_authnz_sspi\0"
+            VALUE "LegalCopyright", "Copyright © 1999-2006 Tim Costello for the original mod_auth_sspi, Copyright © 2012 Ennio Zarlenga for mod_authnz_sspi\0"
+            VALUE "OriginalFilename", "mod_authnz_sspi.so\0"
+            VALUE "ProductName", "mod_authnz_sspi\0"
         END
     END
     BLOCK "VarFileInfo"
