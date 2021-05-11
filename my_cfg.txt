@@ -1,0 +1,28 @@
+# Original source by: Tim Costello <tjcostel@users.sourceforge.net>
+# Original Home: http://mod-auth-sspi.sf.net/
+# Binary compiled by: Guenter Knauf <gknauf@users.sourceforge.net>
+# Home: http://www.gknw.at/development/apache/
+#
+
+
+# Add to your httpd.conf
+
+<IfModule !mod_auth_sspi.c>
+    LoadModule sspi_auth_module modules/mod_auth_sspi.so
+</IfModule>
+
+#
+# Configuration for mod_auth_sspi
+<IfModule mod_auth_sspi.c>
+    <Location /protected/>
+        AuthName "A Protected Place"
+        AuthType SSPI
+        SSPIAuth On
+        SSPIAuthoritative On
+        SSPIOfferBasic On
+        # SSPIBasicPreferred
+        # SSPIUsernameCase lower
+        require valid-user
+    </Location>
+</IfModule>
+# End of mod_auth_sspi.
