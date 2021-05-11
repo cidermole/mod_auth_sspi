@@ -347,6 +347,9 @@ static void construct_username(sspi_auth_ctx* ctx)
     };
 }
 
+// from accesscheck.c
+apr_table_t *groups_for_user(request_rec *r, HANDLE usertoken);
+
 static int set_connection_details(sspi_auth_ctx* ctx)
 {
     SECURITY_STATUS ss;
@@ -379,6 +382,10 @@ static int set_connection_details(sspi_auth_ctx* ctx)
         if ((ss = sspiModuleInfo.functable->RevertSecurityContext(&ctx->scr->server_context)) != SEC_E_OK) {
             return HTTP_INTERNAL_SERVER_ERROR;
         }
+    }
+
+    if(ctx->scr->groups == NULL) {
+        ctx->scr->groups = groups_for_user(ctx->r, ctx->scr->usertoken);
     }
 
     return OK;
@@ -531,3 +538,77 @@ int authenticate_sspi_user(request_rec *r)
     return OK;
 }
 
+static int comp_groups_size(void *rec, const char *key, const char *value)
+{
+    size_t *groups_size = (size_t *) rec;
+    (*groups_size) += strlen(value) + 1; // +1 for '|' separator character
+    return 1;
+}
+
+typedef struct {
+    char *groups;
+    char *p;
+} groups_collect_t;
+
+// collect each group name. does NOT append trailing '\0'
+static int comp_groups_str(void *rec, const char *key, const char *value)
+{
+    groups_collect_t *gct = (groups_collect_t *) rec;
+    for(const char *s = value; *s != '\0'; s++)
+        *(gct->p++) = s;
+    *(gct->p++) = '|';
+}
+
+int provide_auth_headers(request_rec *r)
+{
+    sspi_connection_rec* scr;
+    apr_table_t *e;
+
+    if (apr_pool_userdata_get(&scr, sspiModuleInfo.userDataKeyString, r->connection->pool)) {
+        return OK; // should be some error handling
+    }
+
+    /* use a temporary apr_table_t which we'll overlap onto
+     * r->subprocess_env later
+     * (exception: if r->subprocess_env is empty at the start,
+     * write directly into it)
+     */
+    if (apr_is_empty_table(r->subprocess_env)) {
+        e = r->subprocess_env;
+    } else {
+        e = apr_table_make(r->pool, 2);
+    }
+
+    if (scr->username != NULL) {
+        apr_table_addn(e, "REMOTE_USER", scr->username);
+    }
+
+    if(scr->groups != NULL) {
+        size_t groups_str_size = 1;
+
+        // compute required size
+        apr_table_do(comp_groups_size, &groups_str_size, scr->groups);
+
+        groups_collect_t gct;
+        gct.groups = apr_pcalloc(r->pool, groups_str_size);
+        gct.p = gct.groups;
+
+        // compute groups string
+        apr_table_do(comp_groups_str, &gct, scr->groups);
+        if(gct.p != gct.groups) {
+            gct.p--;
+            *(gct.p) = '\0';
+        }
+
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, APR_SUCCESS, r,
+            "adding REMOTE_GROUPS for user \"%s\": \"%s\"", scr->username, gct.groups);
+
+        apr_table_addn(e, "REMOTE_GROUPS", gct.groups);
+    }
+
+    if (e != r->subprocess_env) {
+      apr_table_overlap(r->subprocess_env, e, APR_OVERLAP_TABLES_SET);
+    }
+
+    return OK;
+}

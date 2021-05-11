@@ -217,6 +217,7 @@ static void register_hooks(apr_pool_t *p)
 		&authz_sspi_valid_provider,
 		AP_AUTH_INTERNAL_PER_CONF);
 
+	ap_hook_fixups(provide_auth_headers, NULL, NULL, APR_HOOK_LAST);
 	ap_hook_post_config(init_module,NULL,NULL,APR_HOOK_FIRST);
 }
 

@@ -128,6 +128,7 @@ typedef struct sspi_auth_ctx_struct {
 
 /* Function Prototypes */
 int authenticate_sspi_user(request_rec * ) ;
+int provide_auth_headers(request_rec * ) ;
 authz_status sspi_user_check_authorization(request_rec *,
                                                  const char *,
                                                  const void *);

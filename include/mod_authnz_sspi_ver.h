@@ -6,7 +6,7 @@
 
 #define MOD_AUTHNZ_SSPI_VERSION_MAJOR 0
 #define MOD_AUTHNZ_SSPI_VERSION_MID 1
-#define MOD_AUTHNZ_SSPI_VERSION_MINOR 0
+#define MOD_AUTHNZ_SSPI_VERSION_MINOR 1
 
 /** Properly quote a value as a string in the C preprocessor */
 #define STRINGIFY(n) STRINGIFY_HELPER(n)

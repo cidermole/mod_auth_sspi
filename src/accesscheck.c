@@ -17,7 +17,7 @@
  */
 #include "mod_auth_sspi.h"
 
-static apr_table_t *groups_for_user(request_rec *r, HANDLE usertoken)
+apr_table_t *groups_for_user(request_rec *r, HANDLE usertoken)
 {
     TOKEN_GROUPS *groupinfo = NULL;
     int groupinfosize = 0;
