@@ -32,9 +32,13 @@
 #include "mod_auth_sspi_ver.h"
 
 /* System headers */
-#include <windows.h>
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <Windows.h>
+
+//#include <windows.h>
 #include <objbase.h>
-#include <winsock2.h>
+//#include <winsock2.h>
 #include <sspi.h>
 #include <security.h>
 

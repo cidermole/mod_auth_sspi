@@ -94,7 +94,7 @@ static int get_basic_userpass(sspi_auth_ctx* ctx, const char *auth_line)
 
     ctx->hdr.User = ap_getword_nulls(ctx->r->pool, &ptr, ':');
     if (ctx->hdr.User) {
-        ctx->hdr.UserLength = strlen(ctx->hdr.User);
+        ctx->hdr.UserLength = (unsigned long) strlen(ctx->hdr.User);
     } else {
         note_sspi_auth_failure(ctx->r);
         if (ctx->crec->sspi_authoritative) {
@@ -108,16 +108,16 @@ static int get_basic_userpass(sspi_auth_ctx* ctx, const char *auth_line)
         if (*domainptr == '\\' || *domainptr == '/') { /* let's use any slash */
             *domainptr = '\0';
             ctx->hdr.Domain = ctx->hdr.User;
-            ctx->hdr.DomainLength = strlen(ctx->hdr.Domain);
+            ctx->hdr.DomainLength = (unsigned long) strlen(ctx->hdr.Domain);
             ctx->hdr.User = domainptr + 1;
-            ctx->hdr.UserLength = strlen(ctx->hdr.User);
+            ctx->hdr.UserLength = (unsigned long) strlen(ctx->hdr.User);
             break;
         }
     }
     
     ctx->hdr.Password = ptr;
     if (ctx->hdr.Password) {
-        ctx->hdr.PasswordLength = strlen(ctx->hdr.Password);
+        ctx->hdr.PasswordLength = (unsigned long) strlen(ctx->hdr.Password);
     } else {
         note_sspi_auth_failure(ctx->r);
         if (ctx->crec->sspi_authoritative) {

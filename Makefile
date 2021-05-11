@@ -3,9 +3,8 @@
 # Set MSVCDIR to your Visual Studio\VC subfolder
 
 APACHEDIR=C:\repos\httpd
-PLATSDKDIR=C:\Program Files (x86)\Windows Kits\10
-# ?? Include\10.0.19041.0 Lib\10.0.19041.0
-MSVCDIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110
+PLATSDKDIR=C:\Program Files (x86)\Windows Kits\8.0
+MSVCDIR=C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC
 
 LIBAPR=libapr-1.lib
 LIBAPRUTIL=libaprutil-1.lib
