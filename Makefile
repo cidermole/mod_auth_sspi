@@ -2,7 +2,7 @@
 # Set PLATSDKDIR env value to your Windows SDK root
 # Set MSVCDIR to your Visual Studio\VC subfolder
 
-APACHEDIR=C:\repos\httpd
+APACHEDIR=C:\repos\apache2\httpd
 PLATSDKDIR=C:\Program Files (x86)\Windows Kits\8.0
 MSVCDIR=C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC
 

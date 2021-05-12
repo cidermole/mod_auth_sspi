@@ -564,8 +564,10 @@ static int comp_groups_str(void *rec, const char *key, const char *value)
     }
 
     for(; *s != '\0'; s++)
-        *(gct->p++) = s;
+        *(gct->p++) = *s;
     *(gct->p++) = '|';
+
+    return 1;
 }
 
 int provide_auth_headers(request_rec *r)
@@ -573,6 +575,7 @@ int provide_auth_headers(request_rec *r)
     sspi_connection_rec* scr;
     sspi_config_rec* crec;
     apr_table_t *e;
+    groups_collect_t gct;
 
     if (apr_pool_userdata_get(&scr, sspiModuleInfo.userDataKeyString, r->connection->pool)) {
         return OK; // should be some error handling
@@ -600,7 +603,6 @@ int provide_auth_headers(request_rec *r)
         // compute required size
         apr_table_do(comp_groups_size, &groups_str_size, scr->groups);
 
-        groups_collect_t gct;
         gct.groups = apr_pcalloc(r->pool, groups_str_size);
         gct.p = gct.groups;
         gct.sspi_omitdomain = crec->sspi_omitdomain;
