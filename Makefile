@@ -3,8 +3,8 @@
 # Set MSVCDIR to your Visual Studio\VC subfolder
 
 APACHEDIR=C:\repos\apache2\httpd
-PLATSDKDIR=C:\Program Files (x86)\Windows Kits\8.0
-MSVCDIR=C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC
+PLATSDKDIR=C:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um\x64
+MSVCDIR=C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\lib\amd64
 
 LIBAPR=libapr-1.lib
 LIBAPRUTIL=libaprutil-1.lib
@@ -15,8 +15,8 @@ AP_INCLUDES=\
 	
 AP_LIBPATH=\
 	/LIBPATH:"$(APACHEDIR)\Release"\
-	/LIBPATH:"$(APACHEDIR)\srclib\apr\Release"\
-	/LIBPATH:"$(APACHEDIR)\srclib\apr-util\Release"
+	/LIBPATH:"$(APACHEDIR)\srclib\apr\x64\Release"\
+	/LIBPATH:"$(APACHEDIR)\srclib\apr-util\x64\Release"
 
 SRCDIR=src
 BINDIR=bin
