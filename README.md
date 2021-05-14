@@ -6,6 +6,12 @@ Modified to provide group information.
 
 usage in httpd.conf:
 ```
+
+# require any SSPI authenticated user (Jenkins will check the rest)
+Require valid-sspi-user
+
+# pass user and group information to Jenkins
+RequestHeader set X-Forwarded-User expr=%{REMOTE_USER}
 RequestHeader set X-Forwarded-Groups %{REMOTE_GROUPS}e
 ```
 
