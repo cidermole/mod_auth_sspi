@@ -344,6 +344,9 @@ apr_table_t *groups_for_user(request_rec *r, HANDLE usertoken)
     apr_table_t *grps;
     unsigned int i;
 
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, APR_SUCCESS, r,
+        "groups_for_user() entry");
+
     if ((GetTokenInformation(usertoken, TokenGroups, groupinfo, groupinfosize, &groupinfosize))
         || (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
         return NULL;
@@ -354,6 +357,9 @@ apr_table_t *groups_for_user(request_rec *r, HANDLE usertoken)
     if (!GetTokenInformation(usertoken, TokenGroups, groupinfo, groupinfosize, &groupinfosize)) {
         return NULL;
     }
+
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, APR_SUCCESS, r,
+        "user is member of %d groups", (int) groupinfo->GroupCount);
 
     grps = apr_table_make(r->connection->pool, groupinfo->GroupCount);
 
@@ -372,6 +378,9 @@ apr_table_t *groups_for_user(request_rec *r, HANDLE usertoken)
             apr_table_setn(grps, apr_psprintf(r->connection->pool, "%s\\%s", domain_name, group_name), "in");
         }
     }
+
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, APR_SUCCESS, r,
+        "groups_for_user() exit");
 
     return grps;
 }
@@ -411,6 +420,10 @@ static int set_connection_details(sspi_auth_ctx* ctx)
 	}
 
     if(ctx->scr->groups == NULL) {
+
+	    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, APR_SUCCESS, ctx->r,
+	        "calling groups_for_user()");
+
         ctx->scr->groups = groups_for_user(ctx->r, ctx->scr->usertoken);
     }
 
@@ -597,7 +610,7 @@ int authenticate_sspi_user(request_rec *r)
 static int comp_groups_size(void *rec, const char *key, const char *value)
 {
     size_t *groups_size = (size_t *) rec;
-    (*groups_size) += strlen(value) + 1; // +1 for '|' separator character
+    (*groups_size) += strlen(key) + 1; // +1 for '|' separator character
     return 1;
 }
 
@@ -611,10 +624,10 @@ typedef struct {
 static int comp_groups_str(void *rec, const char *key, const char *value)
 {
     groups_collect_t *gct = (groups_collect_t *) rec;
-    const char *s = value;
+    const char *s = key;
 
     if (gct->sspi_omitdomain) {
-        const char *u = strchr(value, '\\');
+        const char *u = strchr(key, '\\');
         if (u)
             s = u+1;
     }
@@ -632,6 +645,9 @@ int provide_auth_headers(request_rec *r)
     sspi_config_rec* crec;
     apr_table_t *e;
     groups_collect_t gct;
+    const apr_array_header_t *tarr;
+    const apr_table_entry_t *telts;
+    int i;
 
     if (apr_pool_userdata_get(&scr, sspiModuleInfo.userDataKeyString, r->connection->pool)) {
         return OK; // should be some error handling
@@ -656,22 +672,32 @@ int provide_auth_headers(request_rec *r)
     if(scr->groups != NULL) {
         size_t groups_str_size = 1;
 
+        tarr = apr_table_elts(scr->groups);
+        telts = (const apr_table_entry_t*)tarr->elts;
+
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, APR_SUCCESS, r,
+            "user \"%s\": found %d cached groups", scr->username, (int) tarr->nelts);
+
         // compute required size
-        apr_table_do(comp_groups_size, &groups_str_size, scr->groups);
+        for (i = 0; i < tarr->nelts; i++) {
+            comp_groups_size(&groups_str_size, telts[i].key, telts[i].val);
+        }
 
         gct.groups = apr_pcalloc(r->pool, groups_str_size);
         gct.p = gct.groups;
         gct.sspi_omitdomain = crec->sspi_omitdomain;
 
-        // compute groups string
-        apr_table_do(comp_groups_str, &gct, scr->groups);
+        // compute (concatenate) groups string
+        for (i = 0; i < tarr->nelts; i++) {
+            comp_groups_str(&gct, telts[i].key, telts[i].val);
+        }
         if(gct.p != gct.groups) {
             gct.p--;
             *(gct.p) = '\0';
         }
 
         ap_log_rerror(APLOG_MARK, APLOG_DEBUG, APR_SUCCESS, r,
-            "adding REMOTE_GROUPS for user \"%s\": \"%s\"", scr->username, gct.groups);
+            "setting REMOTE_GROUPS for user \"%s\": \"%s\"", scr->username, gct.groups);
 
         apr_table_addn(e, "REMOTE_GROUPS", gct.groups);
     }
