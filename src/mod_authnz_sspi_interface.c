@@ -104,7 +104,7 @@ static int get_basic_userpass(sspi_auth_ctx* ctx, const char *auth_line)
         }
     }
 
-    for (domainptr = ctx->hdr.User; (unsigned long)(domainptr - ctx->hdr.User) < ctx->hdr.UserLength; domainptr++) {
+    for (domainptr = ctx->hdr.User; (unsigned long)((char *)domainptr - (char *)ctx->hdr.User) < ctx->hdr.UserLength; domainptr++) {
         if (*domainptr == '\\' || *domainptr == '/') { /* let's use any slash */
             *domainptr = '\0';
             ctx->hdr.Domain = ctx->hdr.User;
