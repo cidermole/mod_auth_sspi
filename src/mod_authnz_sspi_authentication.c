@@ -649,10 +649,14 @@ int provide_auth_headers(request_rec *r)
     const apr_table_entry_t *telts;
     int i;
 
-    if (apr_pool_userdata_get(&scr, sspiModuleInfo.userDataKeyString, r->connection->pool)) {
-        return OK; // should be some error handling
+    scr = NULL;
+    if (apr_pool_userdata_get(&scr, sspiModuleInfo.userDataKeyString, r->connection->pool) || scr == NULL) {
+        return DECLINED;
     }
     crec = get_sspi_config_rec(r);
+    if (crec == NULL || !crec->sspi_on) {
+        return DECLINED;
+    }
 
     /* use a temporary apr_table_t which we'll overlap onto
      * r->subprocess_env later
